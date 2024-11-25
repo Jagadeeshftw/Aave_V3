@@ -1,0 +1,9 @@
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.24;
+
+address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+address constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
+address constant USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+address constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+address constant MKR = 0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2;
+address constant WBTC = 0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599;
