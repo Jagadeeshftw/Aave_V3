@@ -9,6 +9,11 @@ import {IPoolAddressesProvider} from "../src/interfaces/IPoolAddressesProvider.s
 import {IPoolDataProvider} from "../src/interfaces/IPoolDataProvider.sol";
 import {DAI} from "../src/utils/Contants.sol";
 contract FunctionTest is Test {
+    event ReserveUsedAsCollateralEnabled(
+        address indexed reserve,
+        address indexed user
+    );
+
     IPoolAddressesProvider public constant addressProvider =
         IPoolAddressesProvider(
             address(0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e)
@@ -28,20 +33,45 @@ contract FunctionTest is Test {
         deal(address(dai), alice, 1000 * 1e18);
     }
 
-    function test_supply_token() public {
-        vm.startPrank(alice);
-        dai.approve(address(ipool), 900 * 1e18);
+    function supply(address asset, address a, uint amount) public {
+        vm.startPrank(a);
+        dai.approve(address(ipool), amount);
+        vm.expectEmit(true, true, false, false);
+        emit ReserveUsedAsCollateralEnabled(asset, address(a));
+
         ipool.supply({
             asset: address(dai),
             amount: 900 * 1e18,
-            onBehalfOf: address(alice),
+            onBehalfOf: address(a),
             referralCode: 0
         });
+        vm.stopPrank();
+    }
+
+    function test_supply_token() public {
+        uint256 supply_amount = 900 * 1e18;
+        supply(address(dai), alice, supply_amount);
         (address aDAI, , ) = dataProvider.getReserveTokensAddresses(
             address(dai)
         );
-        assertEq(IERC20(aDAI).balanceOf(alice), 900 * 1e18);
+        assertEq(IERC20(aDAI).balanceOf(alice), supply_amount);
         assertEq(dai.balanceOf(alice), 100 * 1e18);
         vm.stopPrank();
+    }
+
+    function withdraw(address asset, uint256 amount, address to) public {
+        vm.prank(alice);
+        ipool.withdraw(asset, amount, to);
+    }
+
+    function test_withdraw_token() public {
+        uint256 supply_amount = 900 * 1e18;
+        uint256 withdraw_amount = 800 * 1e18;
+        supply(address(dai), alice, supply_amount);
+        withdraw(address(dai), withdraw_amount, alice);
+        assertEq(
+            dai.balanceOf(alice),
+            1000 * 1e18 - supply_amount + withdraw_amount
+        );
     }
 }
